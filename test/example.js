@@ -10,7 +10,7 @@ function trace(text) {
 
 function createConnection() {
   var servers = null;
-  window.localPeerConnection = new webkitRTCPeerConnection(servers,
+  window.localPeerConnection = new RTCPeerConnection(servers,
     {optional: [{RtpDataChannels: true}]});
   trace('Created local peer connection object localPeerConnection');
 
@@ -36,8 +36,6 @@ function createConnection() {
   remotePeerConnection.ondatachannel = gotReceiveChannel;
 
   localPeerConnection.createOffer(gotLocalDescription);
-  startButton.disabled = true;
-  closeButton.disabled = false;
 }
 
 function sendData() {
