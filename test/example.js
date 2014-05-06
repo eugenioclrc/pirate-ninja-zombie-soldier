@@ -28,7 +28,7 @@ function createConnection() {
   sendChannel.onopen = handleSendChannelStateChange;
   sendChannel.onclose = handleSendChannelStateChange;
 
-  window.remotePeerConnection = new webkitRTCPeerConnection(servers,
+  window.remotePeerConnection = new RTCPeerConnection(servers,
     {optional: [{RtpDataChannels: true}]});
   trace('Created remote peer connection object remotePeerConnection');
 
