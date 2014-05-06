@@ -11,7 +11,7 @@ var optionalRtpDataChannels = {
 };
 
 var offerer = new webkitRTCPeerConnection(iceServers, optionalRtpDataChannels),
-    answerer, answererDataChannel;
+    answerer, answererDataChannel, channel;
 
 var offererDataChannel = offerer.createDataChannel('RTCDataChannel', {
     reliable: false
@@ -57,18 +57,19 @@ function createAnswer(offerSDP) {
     }, null, mediaConstraints);
 }
 
-function setChannelEvents(channel, channelNameForConsoleOutput) {
-    channel.onmessage = function (event) {
+function setChannelEvents(_channel, channelNameForConsoleOutput) {
+    channel=_channel;
+    _channel.onmessage = function (event) {
         console.debug(channelNameForConsoleOutput, 'received a message:', event.data);
     };
 
-    channel.onopen = function () {
+    _channel.onopen = function () {
         channel.send('first text message over RTP data ports');
     };
-    channel.onclose = function (e) {
+    _channel.onclose = function (e) {
         console.error(e);
     };
-    channel.onerror = function (e) {
+    _channel.onerror = function (e) {
         console.error(e);
     };
 }
