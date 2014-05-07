@@ -23,7 +23,9 @@ $(function () {
 
 
 	$('.JSconnectButton').click(function(){
-		var conn = peer.connect($('.JSpeerid').html());
+		var conn = peer.connect($('.JSsdConnection').val());
+		conn.on('error', function(err){ console.warn(err) });  
+
 		conn.on('open', function() {
 			// Receive messages
 			conn.on('data', function(data) {
