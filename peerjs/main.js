@@ -1,10 +1,38 @@
-$(function(){
+/* global $ */
+/* global Peer */
+/* global console */
+
+'use strict';
+var peer;
+$(function () {
 	try{
-		var peer = new Peer({key: 'lwjd5qra8257b9'});
+		peer=new Peer({host: 'localhost', port: 9000, path: '/'});
+		// = new Peer({debug: true});
 		peer.on('open', function(id) {
 		  $('.JSpeerid').html(id);
 		});
-	} catch (e){
+
+		peer.on('connection', function(conn) {
+			conn.on('data', function(data) {
+				console.log('Received', data);
+			});
+		});
+	} catch (e) {
 		$('.JSpeerid').html('loading error');
 	}
+
+
+	$('.JSconnectButton').click(function(){
+		var conn = peer.connect($('.JSpeerid').html());
+		conn.on('open', function() {
+			// Receive messages
+			conn.on('data', function(data) {
+				console.log('Received', data);
+			});
+
+			// Send messages
+			conn.send('Hello!');
+		});
+	});
+	
 });
