@@ -88,6 +88,8 @@ var NUMBER_OF_BULLETS = 200;
 		create: function () {
 			this.physics.startSystem(Phaser.Physics.ARCADE);
 
+			this.game.time.deltaCap=0.05;
+
 			this.game.stage.disableVisibilityChange = true;
 			
 			this.game.input.keyboard.addKeyCapture([
