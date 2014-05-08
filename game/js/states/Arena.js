@@ -1,13 +1,13 @@
 	'use strict';
 /* global GameCtrl */
 /* global Phaser */
-
-var MAX_SPEED = 300; // pixels/second
-var MAX_SPEED_Y = 1000; // pixels/second
-var ACCELERATION = 500; // pixels/second/second
-var YSPEED = 800;
-var GRAVITY = 2000; 
-var DRAG = 0; // pixels/second
+var BULLET_SPEED_TIME = 1; //Should say 1.
+var MAX_SPEED = 300/BULLET_SPEED_TIME; // pixels/second
+var MAX_SPEED_Y = 1000/BULLET_SPEED_TIME; // pixels/second
+var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
+var YSPEED = 800/BULLET_SPEED_TIME;
+var GRAVITY = 2000/BULLET_SPEED_TIME; 
+var DRAG = 0/BULLET_SPEED_TIME; // pixels/second
 
 
 // Define constants
@@ -188,9 +188,21 @@ map.layers[1].data[6][3].intersects
 
 			this.UpActions = {
 					//A
-					65: this.realPlayer.stop.bind(this.realPlayer),
+					65: function() {
+						if(this.input.keyboard.isDown(Phaser.Keyboard.D))
+							this.realPlayer.goRight.call(this.realPlayer);
+						else
+							this.realPlayer.stop.call(this.realPlayer);
+						},
 					//D
-					68: this.realPlayer.stop.bind(this.realPlayer)
+					68: function() {
+						if(this.input.keyboard.isDown(Phaser.Keyboard.A))
+							this.realPlayer.goLeft.call(this.realPlayer);
+						else
+							this.realPlayer.stop.call(this.realPlayer);
+						},
+					//W
+					87: this.realPlayer.stopJumping.bind(this.realPlayer)
 			}
 			
 			this.input.keyboard.addCallbacks(this, function(ev) {
@@ -239,7 +251,7 @@ map.layers[1].data[6][3].intersects
 		        this.fpsText.setText(this.game.time.fps + ' FPS');
     		}
 
-			this.physics.arcade.collide(this.player, this.tilesCollision);
+			this.physics.arcade.collide(this.player, this.tilesCollision, this.realPlayer.collideWall, null, this.realPlayer);
 
 
 
@@ -293,25 +305,42 @@ map.layers[1].data[6][3].intersects
 			s.body.drag.setTo(DRAG,0);
 
 			this.game.camera.follow(s);
+			this.jumping = false;
 		},
 
 		jump: function() {
 			// Say how high!
-			if(this.sprite.body.blocked.down){
+			if(this.sprite.body.blocked.down || this.sprite.body.blocked.left || this.sprite.body.blocked.right){
+				if(this.sprite.body.blocked.left)
+					this.sprite.body.velocity.x = -this.sprite.body.velocity.x + 600;
+				if(this.sprite.body.blocked.right)
+					this.sprite.body.velocity.x = -this.sprite.body.velocity.x - 600;
 				this.sprite.body.velocity.y=-YSPEED;
+				this.jumping = true;
 			}
 		},
 
+		stopJumping: function() {
+			this.jumping = false;
+		},
+
 		goRight: function() {
-			this.sprite.body.velocity.x=MAX_SPEED;
+			this.sprite.body.acceleration.x=MOVE_ACCELERATION;
 		},
 
 		stop: function() {
 			this.sprite.body.velocity.x=0;
+			this.sprite.body.acceleration.x=0;
 		},
 
 		goLeft: function() {
-			this.sprite.body.velocity.x=-MAX_SPEED;
+			this.sprite.body.acceleration.x=-MOVE_ACCELERATION;
+		},
+
+		collideWall: function(wall) {
+			if(this.jumping) {
+				this.jump()
+			}
 		}
 	};
 
