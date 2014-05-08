@@ -54,30 +54,9 @@ var NUMBER_OF_BULLETS = 200;
 	GameCtrl.Arena.prototype = {
 		// 150,120
 		initPlayer:function(x,y,color){
+			var player = new Game(this.game);
 
-		    // create a new bitmap data object
-		    var bmd = this.add.bitmapData(32,32);
-
-		    if(!color) color=getRndColor();
-		    
-		    // draw to the canvas context like normal
-		    bmd.ctx.beginPath();
-		    bmd.ctx.rect(0,0,32,32);
-		    bmd.ctx.fillStyle =color;
-		    bmd.ctx.fill();
-
-		    
-			var player= this.game.add.sprite(x, y, bmd);
-			player._color=color;
-			this.physics.enable(player,Phaser.Physics.ARCADE,true);
-			player.anchor.set(0.5,0.5);
-			player.lastX=Math.floor(x);
-			player.lastY=Math.floor(y);
-		    player.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y); // x, y
-		    player.body.drag.setTo(DRAG,0);
-
-
-			return player;
+			return player.sprite;
 		},
 		createBullets:function(){
 			// Create an object pool of bullets
@@ -112,12 +91,13 @@ var NUMBER_OF_BULLETS = 200;
 			this.game.stage.disableVisibilityChange = true;
 			
 			this.game.input.keyboard.addKeyCapture([
-		        Phaser.Keyboard.W,
-		        Phaser.Keyboard.A,
-		        Phaser.Keyboard.S,
-		        Phaser.Keyboard.D
-    		]);
+				Phaser.Keyboard.W, Phaser.Keyboard.A,
+				Phaser.Keyboard.S, Phaser.Keyboard.D
+			]);
 
+
+			
+			
 
 
 
@@ -162,7 +142,7 @@ map.layers[1].data[6][3].intersects
 
 			this.game.stage.disableVisibilityChange = true;
 			GameCtrl.remotePlayers=[];
-			this.physics.startSystem(Phaser.Physics.ARCADE);
+			
 			
 
 			this.input.setMoveCallback(function(){
@@ -191,15 +171,18 @@ map.layers[1].data[6][3].intersects
 
 			
 		        
+			var _player = new Player(game);
+			_player.create(Math.floor(Math.random()*600) + 100, 8);
 			
-			this.player=this.initPlayer(Math.floor(Math.random()*600) + 100, 8);			
+			this.player=_player.sprite;
+			
 			this.player.body.collideWorldBounds = true;
 			this.player.body.gravity.set(0, GRAVITY);
 			this.player.body.allowGravity = true;
 			this.createBullets();
 			            
 
-			this.camera.follow(this.player);
+			
 			//this.camera.setSize(100, 100);
 
 
@@ -333,17 +316,39 @@ map.layers[1].data[6][3].intersects
 
 	function Player(game){
 	    this.game = game;
+	    this.physics =game.physics;
+	    this.add=game.add;
+	    debugger;
     	this.sprite = null;
     	this.cursors = null; 
 	};
  
-	Player.prototype.create = function(){
-		this.game.input.keyboard.addKeyCapture([
-			Phaser.Keyboard.W, Phaser.Keyboard.A,
-			Phaser.Keyboard.S, Phaser.Keyboard.D
-		]);
+	Player.prototype = {
+		create: function (x, y, color) {
+			// create a new bitmap data object
+			var bmd = this.add.bitmapData(32,32);
 
-	}
+			if(!color) color=getRndColor();
+
+			// draw to the canvas context like normal
+			bmd.ctx.beginPath();
+			bmd.ctx.rect(0,0,32,32);
+			bmd.ctx.fillStyle =color;
+			bmd.ctx.fill();
+
+			var s = this.game.add.sprite(x, y, bmd);
+			this.sprite = s;
+			s._color=color;
+			this.physics.enable(s,Phaser.Physics.ARCADE,true);
+			s.anchor.set(0.5,0.5);
+			s.lastX=Math.floor(x);
+			s.lastY=Math.floor(y);
+			s.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y); // x, y
+			s.body.drag.setTo(DRAG,0);
+
+			this.game.camera.follow(s);
+		}
+	};
 
 
 	function diceRoll(data){
