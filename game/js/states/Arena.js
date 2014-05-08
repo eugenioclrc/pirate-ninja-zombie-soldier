@@ -318,11 +318,14 @@ map.layers[1].data[6][3].intersects
 		jump: function() {
 			// Say how high!
 			this.jumping = true;
+			//En el aire pierde velocidad cuando no se mueve hacia algun costad.
 			this.sprite.body.drag.setTo(DRAG, 0)
 			if(this.sprite.body.blocked.down || this.sprite.body.blocked.left || this.sprite.body.blocked.right){
 				if(this.sprite.body.blocked.left)
+					//Al saltar desde una pared sale impulsado con la misma o al menos un poco de velocidad
 					this.sprite.body.velocity.x = -this.sprite.body.velocity.x + JUMP_BACK_OFF;
 				if(this.sprite.body.blocked.right)
+					//Idem anterior
 					this.sprite.body.velocity.x = -this.sprite.body.velocity.x - JUMP_BACK_OFF;
 				this.sprite.body.velocity.y=-YSPEED;
 			}
@@ -330,7 +333,6 @@ map.layers[1].data[6][3].intersects
 
 		stopJumping: function() {
 			this.jumping = false;
-			this.sprite.body.drag.setTo(0, 0)
 		},
 
 		goLeft: function() {
@@ -343,7 +345,8 @@ map.layers[1].data[6][3].intersects
 		_go: function(sign) {
 			this.stoped = false;
 			this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
-			if(this.sprite.body.blocked.none)
+			if(this.sprite.body.blocked.down)
+				//Si esta en el piso no paga penalidad para empezar a moverse.
 				this.sprite.body.velocity.x=sign*MAX_SPEED;
 		},
 
@@ -351,18 +354,24 @@ map.layers[1].data[6][3].intersects
 			this.stoped = true;
 			this.sprite.body.acceleration.x=0;
 			if(this.sprite.body.blocked.down)
+				//Si esta en el piso no paga penalidad para detenerse.
 				this.sprite.body.velocity.x=0;
 		},
 
 
 		collideWall: function(wall) {
 			if(this.sprite.body.blocked.down && this.stoped) {
+				//Si dejó de apretar dirección y toca el piso, se detiene del todo.
 				this.sprite.body.acceleration.x=0;
 				this.sprite.body.velocity.x=0;
 			}
 			if(this.jumping) {
+				//Si esta saltando, vuelve a saltar.
 				this.jump()
-			} 
+			} else if (this.sprite.body.blocked.down) {
+				//Si dejó de saltar y toca el piso, pierde el DRAG
+				this.sprite.body.drag.setTo(0, 0)
+			}
 		}
 	};
 
