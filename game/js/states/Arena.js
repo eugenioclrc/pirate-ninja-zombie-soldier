@@ -54,8 +54,8 @@ var NUMBER_OF_BULLETS = 200;
 	GameCtrl.Arena.prototype = {
 		// 150,120
 		initPlayer:function(x,y,color){
-			var player = new Game(this.game);
-
+			var player = new Player(this.game);
+			player.create(x,y,color);
 			return player.sprite;
 		},
 		createBullets:function(){
@@ -144,6 +144,7 @@ map.layers[1].data[6][3].intersects
 			GameCtrl.remotePlayers=[];
 			
 			
+			//this.input.keyboard.addCallbacks(null, null, this.onKeyUp);
 
 			this.input.setMoveCallback(function(){
 				if(this.input.mousePointer.isDown){
@@ -168,52 +169,16 @@ map.layers[1].data[6][3].intersects
 				}
 
 			}, this);
-
 			
 		        
-			var _player = new Player(game);
-			_player.create(Math.floor(Math.random()*600) + 100, 8);
-			
-			this.player=_player.sprite;
+			this.player=this.initPlayer(Math.floor(Math.random()*600) + 100, 8);
 			
 			this.player.body.collideWorldBounds = true;
 			this.player.body.gravity.set(0, GRAVITY);
 			this.player.body.allowGravity = true;
 			this.createBullets();
 			            
-
 			
-			//this.camera.setSize(100, 100);
-
-
-
-			//this.player.body.customSeparateX=true;
-			//this.player.body.customSeparateY=true;
-
-			
-			
-			var self=this;
-
-			/*
-			SOCKETS!
-			GameCtrl.socket.on('new player', function(d){
-				self.onNewPlayer(d);
-			});
-			
-			GameCtrl.socket.on('fire', function(d){
-				self.drawBullet(d);
-			});
-
-			GameCtrl.socket.on('move player', function(d){
-				self.movePlayer(d);
-			});
-			GameCtrl.socket.on('remove player', function(d){
-				self.removePlayer(d);
-			});
-			
-			GameCtrl.socket.emit('new player',{x:this.player.x, y:this.player.y,color:this.player._color});
-			*/
-
 		},
 		drawBullet:function(data){
 			// Get a dead bullet from the pool
@@ -244,37 +209,6 @@ map.layers[1].data[6][3].intersects
 			bullet.body.velocity.x = Math.cos(data.angle) * BULLET_SPEED;
 			bullet.body.velocity.y = Math.sin(data.angle) * BULLET_SPEED;
 
-		},
-		removePlayer:function(data){
-			var found=false;
-			for(var i=0,len=GameCtrl.remotePlayers.length;i<len;i++){
-				if(GameCtrl.remotePlayers[i].id===data.id){
-					found=GameCtrl.remotePlayers.splice(i, 1)[0];
-					found.kill();
-					break;
-				}
-			}
-		},
-		movePlayer:function(data){
-			for(var i=0,len=GameCtrl.remotePlayers.length;i<len;i++){
-				if(GameCtrl.remotePlayers[i].id===data.id){
-					var found=GameCtrl.remotePlayers[i];
-					found.x=data.x;
-					found.y=data.y;
-
-					break;
-				}
-			}
-		},
-		onNewPlayer:function(data){
-			console.log('New player connected: '+data.id);
-
-			// Initialise the new player
-			var newPlayer = this.initPlayer(data.x,data.y,data.color);
-			newPlayer.id = data.id;
-
-			// Add new player to the remote players array
-			GameCtrl.remotePlayers.push(newPlayer);
 		},
 		update: function () {
 			if (this.game.time.fps !== 0) {
@@ -310,6 +244,10 @@ map.layers[1].data[6][3].intersects
 				*/
 			}
 
+		},
+		render: function(){
+			this.game.debug.bodyInfo(this.player);
+			this.game.debug.body(this.player);
 		}
 	};
 
@@ -349,43 +287,6 @@ map.layers[1].data[6][3].intersects
 			this.game.camera.follow(s);
 		}
 	};
-
-
-	function diceRoll(data){
-		// data val sample '1d8+12'
-		// data val sample '4d8-10'
-		// data val sample 'd8+2'
-		data=' '+data;
-		var dataSplit=data.split(/-|\+|d/g);
-		var dices=parseInt(dataSplit[0],10);
-		if(!dices){
-			dices=1;
-		}
-		var sides=parseInt(dataSplit[1],10);
-		
-		var ret={ diceRoll:[], number:0, bonus:0 };
-		
-		ret.number=0;
-		var n;
-		for(var i=0;i<dices;i++){
-			n=1+Math.floor(Math.random() * sides);
-			ret.diceRoll.push(n);
-			ret.number+=n;
-		}
-		
-		
-		
-		if(dataSplit[2]){
-			ret.bonus=parseInt(dataSplit[2],10);
-			if(data.indexOf('-')>-1){
-				ret.bonus=ret.bonus*-1;
-			}
-		}
-
-		ret.total=ret.number+ret.bonus;
-
-		return ret;
-	}
 
 
 }());
