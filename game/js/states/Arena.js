@@ -2,9 +2,12 @@
 /* global GameCtrl */
 /* global Phaser */
 
-var MAX_SPEED = 250; // pixels/second
+var MAX_SPEED = 300; // pixels/second
+var MAX_SPEED_Y = 1000; // pixels/second
 var ACCELERATION = 500; // pixels/second/second
-var DRAG = 90; // pixels/second
+var YSPEED = 800;
+var GRAVITY = 2000; 
+var DRAG = 0; // pixels/second
 
 
 // Define constants
@@ -70,8 +73,8 @@ var NUMBER_OF_BULLETS = 200;
 			player.anchor.set(0.5,0.5);
 			player.lastX=Math.floor(x);
 			player.lastY=Math.floor(y);
-		    player.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED); // x, y
-		    player.body.drag.setTo(DRAG,DRAG);
+		    player.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y); // x, y
+		    player.body.drag.setTo(DRAG,0);
 
 
 			return player;
@@ -104,9 +107,9 @@ var NUMBER_OF_BULLETS = 200;
 		},
 			
 		create: function () {
+			this.physics.startSystem(Phaser.Physics.ARCADE);
+
 			this.game.stage.disableVisibilityChange = true;
-			this.world.setBounds(0,0,1024, 1024);
-        	this.background=this.add.tileSprite(0, 0, 1024, 1024, 'background');
 			
 			this.game.input.keyboard.addKeyCapture([
 		        Phaser.Keyboard.W,
@@ -114,6 +117,43 @@ var NUMBER_OF_BULLETS = 200;
 		        Phaser.Keyboard.S,
 		        Phaser.Keyboard.D
     		]);
+
+
+
+
+			var map = this.add.tilemap('main');
+			map.addTilesetImage('Kenney 32x32', 'kenney32x32');
+
+			map.layers.forEach(function(l){
+				var layer=map.createLayer(l.name);
+				if(l.name=='collision'){
+
+				/*	var firstgid=map.tilesets[map.getTilesetIndex('zelda14')].firstgid;
+					var slope={};
+					for(var i=firstgid;i<firstgid+14;i++){
+						slope[i.toString()]=i-firstgid;
+						console.log(i+' '+(i-firstgid));
+
+					}*/
+/*
+CUSTOM TILES
+map.layers[1].data[6][3].intersects
+!tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
+*/	
+					console.log(l.name);
+					map.setCollisionByExclusion([],true,layer);
+					// l.name es 'ninjacollision'
+					
+					layer.debug = true;
+				
+					this.tilesCollision=layer;
+					console.log(layer);
+				}
+				
+				layer.resizeWorld();
+			}, this);
+			
+			
     		this.game.time.advancedTiming = true;
     		this.fpsText = this.game.add.text(
       		  20, 20, '', { font: '16px Arial', fill: '#ffffff' }
@@ -152,8 +192,10 @@ var NUMBER_OF_BULLETS = 200;
 			
 		        
 			
-			this.player=this.initPlayer(Math.floor(Math.random()*600) + 100, Math.floor(Math.random()*300) + 100);			
+			this.player=this.initPlayer(Math.floor(Math.random()*600) + 100, 8);			
 			this.player.body.collideWorldBounds = true;
+			this.player.body.gravity.set(0, GRAVITY);
+			this.player.body.allowGravity = true;
 			this.createBullets();
 			            
 
@@ -256,22 +298,23 @@ var NUMBER_OF_BULLETS = 200;
 		        this.fpsText.setText(this.game.time.fps + ' FPS');
     		}
 
-    		this.player.body.acceleration.x = 0;
-			this.player.body.acceleration.y = 0;
+			this.physics.arcade.collide(this.player, this.tilesCollision);
 
+
+    		this.player.body.velocity.x=0;
     		// up - down
-    		if(this.input.keyboard.isDown(Phaser.Keyboard.W)){
-    			this.player.body.acceleration.y=-ACCELERATION;
-    		}else if(this.input.keyboard.isDown(Phaser.Keyboard.S)){
-    			this.player.body.acceleration.y=ACCELERATION;
+    		if(this.input.keyboard.isDown(Phaser.Keyboard.W) && this.player.y === 1008){
+    			this.player.body.velocity.y=-YSPEED;
     		}
 
     		// left-right
     		if(this.input.keyboard.isDown(Phaser.Keyboard.A)){
-    			this.player.body.acceleration.x=-ACCELERATION;
+    			this.player.body.velocity.x=-MAX_SPEED;
     		}else if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-    			this.player.body.acceleration.x=ACCELERATION;
+    			this.player.body.velocity.x=MAX_SPEED;
     		}
+
+
     		
 
 
@@ -287,6 +330,20 @@ var NUMBER_OF_BULLETS = 200;
 		}
 	};
 
+
+	function Player(game){
+	    this.game = game;
+    	this.sprite = null;
+    	this.cursors = null; 
+	};
+ 
+	Player.prototype.create = function(){
+		this.game.input.keyboard.addKeyCapture([
+			Phaser.Keyboard.W, Phaser.Keyboard.A,
+			Phaser.Keyboard.S, Phaser.Keyboard.D
+		]);
+
+	}
 
 
 	function diceRoll(data){
