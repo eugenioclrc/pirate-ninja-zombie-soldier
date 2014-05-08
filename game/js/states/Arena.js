@@ -56,7 +56,7 @@ var NUMBER_OF_BULLETS = 200;
 		initPlayer:function(x,y,color){
 			var player = new Player(this.game);
 			player.create(x,y,color);
-			return player.sprite;
+			return player;
 		},
 		createBullets:function(){
 			// Create an object pool of bullets
@@ -144,7 +144,6 @@ map.layers[1].data[6][3].intersects
 			GameCtrl.remotePlayers=[];
 			
 			
-			//this.input.keyboard.addCallbacks(null, null, this.onKeyUp);
 
 			this.input.setMoveCallback(function(){
 				if(this.input.mousePointer.isDown){
@@ -171,15 +170,40 @@ map.layers[1].data[6][3].intersects
 			}, this);
 			
 		        
-			this.player=this.initPlayer(Math.floor(Math.random()*600) + 100, 8);
-			
+			this.realPlayer=this.initPlayer(Math.floor(Math.random()*600) + 100, 8);
+			this.player = this.realPlayer.sprite;
 			this.player.body.collideWorldBounds = true;
 			this.player.body.gravity.set(0, GRAVITY);
 			this.player.body.allowGravity = true;
 			this.createBullets();
+
+			this.DownActions = {
+					//W
+					87: this.realPlayer.jump.bind(this.realPlayer),
+					//D
+					68: this.realPlayer.goRight.bind(this.realPlayer), 
+					//A
+					65: this.realPlayer.goLeft.bind(this.realPlayer)
+			}
+
+			this.UpActions = {
+					//A
+					65: this.realPlayer.stop.bind(this.realPlayer),
+					//D
+					68: this.realPlayer.stop.bind(this.realPlayer)
+			}
+			
+			this.input.keyboard.addCallbacks(this, function(ev) {
+				if(ev.keyCode in this.DownActions)
+					this.DownActions[ev.keyCode].call(this);
+			}, function(ev) {
+				if(ev.keyCode in this.UpActions)
+				this.UpActions[ev.keyCode].call(this);
+			});
 			            
 			
 		},
+
 		drawBullet:function(data){
 			// Get a dead bullet from the pool
 			var bullet = this.bulletPool.getFirstDead();
@@ -218,21 +242,6 @@ map.layers[1].data[6][3].intersects
 			this.physics.arcade.collide(this.player, this.tilesCollision);
 
 
-    		this.player.body.velocity.x=0;
-    		// up - down
-    		if(this.input.keyboard.isDown(Phaser.Keyboard.W) && this.player.y === 1008){
-    			this.player.body.velocity.y=-YSPEED;
-    		}
-
-    		// left-right
-    		if(this.input.keyboard.isDown(Phaser.Keyboard.A)){
-    			this.player.body.velocity.x=-MAX_SPEED;
-    		}else if(this.input.keyboard.isDown(Phaser.Keyboard.D)){
-    			this.player.body.velocity.x=MAX_SPEED;
-    		}
-
-
-    		
 
 
 			var x=Math.floor(this.player.x);
@@ -256,7 +265,6 @@ map.layers[1].data[6][3].intersects
 	    this.game = game;
 	    this.physics =game.physics;
 	    this.add=game.add;
-	    debugger;
     	this.sprite = null;
     	this.cursors = null; 
 	};
@@ -285,6 +293,25 @@ map.layers[1].data[6][3].intersects
 			s.body.drag.setTo(DRAG,0);
 
 			this.game.camera.follow(s);
+		},
+
+		jump: function() {
+			// Say how high!
+			if(this.sprite.body.blocked.down){
+				this.sprite.body.velocity.y=-YSPEED;
+			}
+		},
+
+		goRight: function() {
+			this.sprite.body.velocity.x=MAX_SPEED;
+		},
+
+		stop: function() {
+			this.sprite.body.velocity.x=0;
+		},
+
+		goLeft: function() {
+			this.sprite.body.velocity.x=-MAX_SPEED;
 		}
 	};
 
