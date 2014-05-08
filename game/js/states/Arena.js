@@ -7,7 +7,8 @@ var MAX_SPEED_Y = 1000/BULLET_SPEED_TIME; // pixels/second
 var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
 var YSPEED = 800/BULLET_SPEED_TIME;
 var GRAVITY = 2000/BULLET_SPEED_TIME; 
-var DRAG = 0/BULLET_SPEED_TIME; // pixels/second
+var DRAG = 400/BULLET_SPEED_TIME; // pixels/second
+var JUMP_BACK_OFF = 600;
 
 
 // Define constants
@@ -126,7 +127,7 @@ map.layers[1].data[6][3].intersects
 					map.setCollisionByExclusion([],true,layer);
 					// l.name es 'ninjacollision'
 					
-					layer.debug = true;
+					//layer.debug = true;
 				
 					this.tilesCollision=layer;
 					console.log(layer);
@@ -307,42 +308,61 @@ map.layers[1].data[6][3].intersects
 			s.body.drag.setTo(DRAG,0);
 
 			this.game.camera.follow(s);
+
+			//TODO reemplazar booleanos por estados.
+			//Si está en el aire hacer algo, sino hacer otra cosa.
 			this.jumping = false;
+			this.stoped = true;
 		},
 
 		jump: function() {
 			// Say how high!
+			this.jumping = true;
+			this.sprite.body.drag.setTo(DRAG, 0)
 			if(this.sprite.body.blocked.down || this.sprite.body.blocked.left || this.sprite.body.blocked.right){
 				if(this.sprite.body.blocked.left)
-					this.sprite.body.velocity.x = -this.sprite.body.velocity.x + 600;
+					this.sprite.body.velocity.x = -this.sprite.body.velocity.x + JUMP_BACK_OFF;
 				if(this.sprite.body.blocked.right)
-					this.sprite.body.velocity.x = -this.sprite.body.velocity.x - 600;
+					this.sprite.body.velocity.x = -this.sprite.body.velocity.x - JUMP_BACK_OFF;
 				this.sprite.body.velocity.y=-YSPEED;
-				this.jumping = true;
 			}
 		},
 
 		stopJumping: function() {
 			this.jumping = false;
-		},
-
-		goRight: function() {
-			this.sprite.body.acceleration.x=MOVE_ACCELERATION;
-		},
-
-		stop: function() {
-			this.sprite.body.velocity.x=0;
-			this.sprite.body.acceleration.x=0;
+			this.sprite.body.drag.setTo(0, 0)
 		},
 
 		goLeft: function() {
-			this.sprite.body.acceleration.x=-MOVE_ACCELERATION;
+			this._go(-1);
+		},
+		goRight: function() {
+			this._go(1);
 		},
 
+		_go: function(sign) {
+			this.stoped = false;
+			this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
+			if(this.sprite.body.blocked.none)
+				this.sprite.body.velocity.x=sign*MAX_SPEED;
+		},
+
+		stop: function() {
+			this.stoped = true;
+			this.sprite.body.acceleration.x=0;
+			if(this.sprite.body.blocked.down)
+				this.sprite.body.velocity.x=0;
+		},
+
+
 		collideWall: function(wall) {
+			if(this.sprite.body.blocked.down && this.stoped) {
+				this.sprite.body.acceleration.x=0;
+				this.sprite.body.velocity.x=0;
+			}
 			if(this.jumping) {
 				this.jump()
-			}
+			} 
 		}
 	};
 
