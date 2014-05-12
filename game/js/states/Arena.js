@@ -1,4 +1,4 @@
-	'use strict';
+'use strict';
 /* global GameCtrl */
 /* global Phaser */
 var BULLET_SPEED_TIME = 1; //Should say 1.
@@ -8,7 +8,7 @@ var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
 var YSPEED = 800/BULLET_SPEED_TIME;
 var GRAVITY = 2000/BULLET_SPEED_TIME; 
 var DRAG = 400/BULLET_SPEED_TIME; // pixels/second
-var JUMP_BACK_OFF = 600;
+var JUMP_BACK_OFF = 3600;
 
 
 // Define constants
@@ -89,7 +89,8 @@ var NUMBER_OF_BULLETS = 200;
 		create: function () {
 			this.physics.startSystem(Phaser.Physics.ARCADE);
 
-			this.game.time.deltaCap=0.05;
+			this.game.time.deltaCap=0.02;
+			this.game.physics.arcade.frameRate = 1 / 60;
 
 			this.game.stage.disableVisibilityChange = true;
 			
@@ -123,14 +124,14 @@ CUSTOM TILES
 map.layers[1].data[6][3].intersects
 !tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
 */	
-					console.log(l.name);
+					//console.log(l.name);
 					map.setCollisionByExclusion([],true,layer);
 					// l.name es 'ninjacollision'
 					
 					//layer.debug = true;
 				
 					this.tilesCollision=layer;
-					console.log(layer);
+					//console.log(layer);
 				}
 				
 				layer.resizeWorld();
@@ -151,7 +152,7 @@ map.layers[1].data[6][3].intersects
 			this.input.setMoveCallback(function(){
 				if(this.input.mousePointer.isDown){
 					if(this.input.mousePointer.button !==0){
-						console.log(this.input.mousePointer.button);
+						//console.log(this.input.mousePointer.button);
 						return ;
 					}
 					
@@ -175,46 +176,11 @@ map.layers[1].data[6][3].intersects
 		        
 			this.realPlayer=this.initPlayer(Math.floor(Math.random()*600) + 100, 8);
 			this.player = this.realPlayer.sprite;
-			this.player.body.collideWorldBounds = true;
-			this.player.body.gravity.set(0, GRAVITY);
-			this.player.body.allowGravity = true;
+
+			//game.physics.arcade.gravity.y = 640;
+
 			this.createBullets();
 
-			this.DownActions = {
-					//W
-					87: this.realPlayer.jump.bind(this.realPlayer),
-					//D
-					68: this.realPlayer.goRight.bind(this.realPlayer), 
-					//A
-					65: this.realPlayer.goLeft.bind(this.realPlayer)
-			}
-
-			this.UpActions = {
-					//A
-					65: function() {
-						if(this.input.keyboard.isDown(Phaser.Keyboard.D))
-							this.realPlayer.goRight.call(this.realPlayer);
-						else
-							this.realPlayer.stop.call(this.realPlayer);
-						},
-					//D
-					68: function() {
-						if(this.input.keyboard.isDown(Phaser.Keyboard.A))
-							this.realPlayer.goLeft.call(this.realPlayer);
-						else
-							this.realPlayer.stop.call(this.realPlayer);
-						},
-					//W
-					87: this.realPlayer.stopJumping.bind(this.realPlayer)
-			}
-			
-			this.input.keyboard.addCallbacks(this, function(ev) {
-				if(ev.keyCode in this.DownActions)
-					this.DownActions[ev.keyCode].call(this);
-			}, function(ev) {
-				if(ev.keyCode in this.UpActions)
-				this.UpActions[ev.keyCode].call(this);
-			});
 			            
 			
 		},
@@ -254,35 +220,36 @@ map.layers[1].data[6][3].intersects
 		        this.fpsText.setText(this.game.time.fps + ' FPS');
     		}
 
-			this.physics.arcade.collide(this.player, this.tilesCollision, this.realPlayer.collideWall, null, this.realPlayer);
+			this.physics.arcade.collide(this.player, this.tilesCollision /*, this.realPlayer.collideWall, null, this.realPlayer*/);
 
+			this.realPlayer.update();
 
-
-
+			/*
 			var x=Math.floor(this.player.x);
 			var y=Math.floor(this.player.y);
 			if(x!=this.player.lastX || y!=this.player.lastY){
-				/*
+				
 				TODO SOCKETS
 				GameCtrl.socket.emit('move player', {x: Math.floor(this.player.x), y: Math.floor(this.player.y) });
-				*/
 			}
+			*/
 
 		},
 		render: function(){
-			this.game.debug.bodyInfo(this.player);
-			this.game.debug.body(this.player);
+			this.game.debug.bodyInfo(this.player, 0, 100);
+			this.game.debug.body(this.player,0,100);
 		}
 	};
 
 
 	function Player(game){
 	    this.game = game;
-	    this.physics =game.physics;
-	    this.add=game.add;
-    	this.sprite = null;
-    	this.cursors = null; 
-	};
+	    this.physics = game.physics;
+	    this.add = game.add;
+	    this.sprite = null;
+    	this.keyboard = this.game.input.keyboard; 
+    	this.canJump = true;
+	}
  
 	Player.prototype = {
 		create: function (x, y, color) {
@@ -305,74 +272,99 @@ map.layers[1].data[6][3].intersects
 			s.lastX=Math.floor(x);
 			s.lastY=Math.floor(y);
 			s.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y); // x, y
-			s.body.drag.setTo(DRAG,0);
+			s.body.drag.setTo(DRAG, 0);
+
+			s.body.collideWorldBounds = true;
+			s.body.gravity.set(0, GRAVITY);
+			s.body.allowGravity = true;
 
 			this.game.camera.follow(s);
 
-			//TODO reemplazar booleanos por estados.
-			//Si está en el aire hacer algo, sino hacer otra cosa.
-			this.jumping = false;
-			this.stoped = true;
-		},
 
+			this.cursors = {
+				up: this.game.input.keyboard.addKey(Phaser.Keyboard.W),
+				left: this.game.input.keyboard.addKey(Phaser.Keyboard.A),
+				right: this.game.input.keyboard.addKey(Phaser.Keyboard.D)
+			};
+
+			this.cursors.up.onUp.add(function(){
+				this.canJump = true;
+			}.bind(this));
+		},
+		update: function() {
+			this.sprite.body.acceleration.x=0;
+			if(this.sprite.body.blocked.down){
+				this.sprite.body.velocity.x = 0;
+			}
+
+			if(this.cursors.left.isDown){
+				this.go('left');
+			}else if (this.cursors.right.isDown){
+				this.go('right');
+			}
+
+
+			if (this.canJump && this.cursors.up.isDown) {
+				this.jump();
+			}
+		},
 		jump: function() {
 			// Say how high!
-			this.jumping = true;
 			//En el aire pierde velocidad cuando no se mueve hacia algun costad.
-			this.sprite.body.drag.setTo(DRAG, 0)
-			if(this.sprite.body.blocked.down || this.sprite.body.blocked.left || this.sprite.body.blocked.right){
-				if(this.sprite.body.blocked.left)
-					//Al saltar desde una pared sale impulsado con la misma o al menos un poco de velocidad
-					this.sprite.body.velocity.x = -this.sprite.body.velocity.x + JUMP_BACK_OFF;
-				if(this.sprite.body.blocked.right)
-					//Idem anterior
-					this.sprite.body.velocity.x = -this.sprite.body.velocity.x - JUMP_BACK_OFF;
-				this.sprite.body.velocity.y=-YSPEED;
+			
+			if (this.sprite.body.blocked.down || this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
+				this.canJump = false;
+				if (!this.sprite.body.blocked.down) {
+					if (this.sprite.body.blocked.left) {
+						//Al saltar desde una pared sale impulsado con la misma o al menos un poco de velocidad
+						this.sprite.body.velocity.x = -this.sprite.body.velocity.x + JUMP_BACK_OFF;
+					}
+					if (this.sprite.body.blocked.right) {
+						//Idem anterior
+						this.sprite.body.velocity.x = -this.sprite.body.velocity.x - JUMP_BACK_OFF;
+					}
+				}
+				this.sprite.body.velocity.y = -YSPEED;
 			}
 		},
 
-		stopJumping: function() {
-			this.jumping = false;
-		},
-
-		goLeft: function() {
-			this._go(-1);
-		},
-		goRight: function() {
-			this._go(1);
-		},
-
-		_go: function(sign) {
-			this.stoped = false;
-			this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
-			if(this.sprite.body.blocked.down)
+		go: function(direction) {
+			var sign = (direction==='left') ? -1 : 1;
+			
+			//this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
+			if(this.sprite.body.blocked.down){
 				//Si esta en el piso no paga penalidad para empezar a moverse.
 				this.sprite.body.velocity.x=sign*MAX_SPEED;
+			} else {
+				this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
+				if (this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
+					this.sprite.body.velocity.y=0;
+				}
+			}
+
+
 		},
 
 		stop: function() {
-			this.stoped = true;
 			this.sprite.body.acceleration.x=0;
-			if(this.sprite.body.blocked.down)
+			if(this.sprite.body.blocked.down){
 				//Si esta en el piso no paga penalidad para detenerse.
 				this.sprite.body.velocity.x=0;
+			}
 		},
 
-
-		collideWall: function(wall) {
+/*
+		collideWall: function(/*wall* /) {
 			if(this.sprite.body.blocked.down && this.stoped) {
 				//Si dejó de apretar dirección y toca el piso, se detiene del todo.
 				this.sprite.body.acceleration.x=0;
 				this.sprite.body.velocity.x=0;
 			}
-			if(this.jumping) {
-				//Si esta saltando, vuelve a saltar.
-				this.jump()
-			} else if (this.sprite.body.blocked.down) {
+			if(this.sprite.body.blocked.down) {
 				//Si dejó de saltar y toca el piso, pierde el DRAG
-				this.sprite.body.drag.setTo(0, 0)
+				
 			}
-		}
+		}*/
 	};
 
 
