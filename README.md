@@ -1,4 +1,4 @@
 pirate-ninja-zombie-soldier
 ===========================
 
-Simple 
+Developed by [a http://twitter.com/eugenioclrc](@eugenioclrc) and [a http://twitter.com/msemelman](@msemelman)

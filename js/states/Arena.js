@@ -101,10 +101,6 @@ var NUMBER_OF_BULLETS = 200;
 
 
 			
-			
-
-
-
 			var map = this.add.tilemap('main');
 			map.addTilesetImage('Kenney 32x32', 'kenney32x32');
 
@@ -236,8 +232,8 @@ map.layers[1].data[6][3].intersects
 
 		},
 		render: function(){
-			this.game.debug.bodyInfo(this.player, 0, 100);
-			this.game.debug.body(this.player,0,100);
+			//this.game.debug.bodyInfo(this.player, 0, 100);
+			//this.game.debug.body(this.player,0,100);
 		}
 	};
 
