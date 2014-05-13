@@ -257,7 +257,7 @@ map.layers[1].data[6][3].intersects
 			// draw to the canvas context like normal
 			bmd.ctx.beginPath();
 			bmd.ctx.rect(0,0,32,32);
-			bmd.ctx.fillStyle =color;
+			bmd.ctx.fillStyle ='#' + color;
 			bmd.ctx.fill();
 
 			var s = this.game.add.sprite(x, y, bmd);
