@@ -3,9 +3,9 @@
 /* global Phaser */
 var BULLET_SPEED_TIME = 1; //Should say 1.
 var MAX_SPEED = 300/BULLET_SPEED_TIME; // pixels/second
-var MAX_SPEED_Y = 1000/BULLET_SPEED_TIME; // pixels/second
+var MAX_SPEED_Y = 900/BULLET_SPEED_TIME; // pixels/second
 var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
-var YSPEED = 800/BULLET_SPEED_TIME;
+var YSPEED = 900/BULLET_SPEED_TIME;
 var GRAVITY = 2000/BULLET_SPEED_TIME; 
 var DRAG = 400/BULLET_SPEED_TIME; // pixels/second
 var JUMP_BACK_OFF = 3600;
@@ -284,8 +284,24 @@ map.layers[1].data[6][3].intersects
 			};
 
 			this.cursors.up.onUp.add(function(){
+				if(!this.canJump && this.sprite.body.velocity.y < 0){
+					this.sprite.body.velocity.y=0;
+				}
+
 				this.canJump = true;
+
 			}.bind(this));
+
+			var k = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+			k.onUp.add(function(){
+				this.sprite.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y);
+			}.bind(this));
+			
+			k.onDown.add(function(){
+				this.sprite.body.maxVelocity.setTo(MAX_SPEED*1.8, MAX_SPEED_Y);
+			}.bind(this));
+			
+
 		},
 		update: function() {
 			this.sprite.body.acceleration.x=0;
@@ -325,7 +341,7 @@ map.layers[1].data[6][3].intersects
 		},
 
 		go: function(direction) {
-			var sign = (direction==='left') ? -1 : 1;
+			var sign = (direction==='left') ? -2 : 2;
 			
 			//this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
 			if(this.sprite.body.blocked.down){
@@ -333,7 +349,7 @@ map.layers[1].data[6][3].intersects
 				this.sprite.body.velocity.x=sign*MAX_SPEED;
 			} else {
 				this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
-				if (this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
+				if ((this.sprite.body.blocked.left || this.sprite.body.blocked.right) && this.sprite.body.velocity.y > -MAX_SPEED_Y *0.8 ){
 					this.sprite.body.velocity.y=0;
 				}
 			}
