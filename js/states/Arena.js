@@ -4,10 +4,9 @@
 var BULLET_SPEED_TIME = 1; //Should say 1.
 var MAX_SPEED = 300/BULLET_SPEED_TIME; // pixels/second
 var MAX_SPEED_Y = 900/BULLET_SPEED_TIME; // pixels/second
-var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
 var YSPEED = 900/BULLET_SPEED_TIME;
+var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
 var GRAVITY = 2000/BULLET_SPEED_TIME; 
-var DRAG = 400/BULLET_SPEED_TIME; // pixels/second
 var JUMP_BACK_OFF = 3600;
 
 
@@ -133,6 +132,8 @@ map.layers[1].data[6][3].intersects
 				layer.resizeWorld();
 			}, this);
 			
+		    this.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
 			
     		this.game.time.advancedTiming = true;
     		this.fpsText = this.game.add.text(
@@ -268,14 +269,12 @@ map.layers[1].data[6][3].intersects
 			s.lastX=Math.floor(x);
 			s.lastY=Math.floor(y);
 			s.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y); // x, y
-			s.body.drag.setTo(DRAG, 0);
-
+			
 			s.body.collideWorldBounds = true;
 			s.body.gravity.set(0, GRAVITY);
 			s.body.allowGravity = true;
 
-			this.game.camera.follow(s);
-
+			this.game.camera.follow(s, Phaser.Camera.FOLLOW_PLATFORMER);
 
 			this.cursors = {
 				up: this.game.input.keyboard.addKey(Phaser.Keyboard.W),
@@ -283,15 +282,7 @@ map.layers[1].data[6][3].intersects
 				right: this.game.input.keyboard.addKey(Phaser.Keyboard.D)
 			};
 
-			this.cursors.up.onUp.add(function(){
-				if(!this.canJump && this.sprite.body.velocity.y < 0){
-					this.sprite.body.velocity.y=0;
-				}
-
-				this.canJump = true;
-
-			}.bind(this));
-
+			// TURBO!
 			var k = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 			k.onUp.add(function(){
 				this.sprite.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y);
@@ -316,28 +307,48 @@ map.layers[1].data[6][3].intersects
 			}
 
 
-			if (this.canJump && this.cursors.up.isDown) {
-				this.jump();
+			var isInAir=(!this.sprite.body.blocked.down && !this.sprite.body.blocked.left && !this.sprite.body.blocked.right);
+			
+
+			if (!isInAir){
+				if(this.cursors.up.isDown && this.canJump) {
+					this.jump();
+				}
 			}
+			if(this.cursors.up.isUp){
+				this.canJump=true;
+			}
+			
+
+
+			if (isInAir && this.cursors.up.isUp) {
+				if( this.sprite.body.velocity.y < 0){
+					this.sprite.body.velocity.y=0;
+				}						
+			}
+
 		},
 		jump: function() {
 			// Say how high!
 			//En el aire pierde velocidad cuando no se mueve hacia algun costad.
 			
-			if (this.sprite.body.blocked.down || this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
-				this.canJump = false;
-				if (!this.sprite.body.blocked.down) {
-					if (this.sprite.body.blocked.left) {
-						//Al saltar desde una pared sale impulsado con la misma o al menos un poco de velocidad
-						this.sprite.body.velocity.x = -this.sprite.body.velocity.x + JUMP_BACK_OFF;
-					}
-					if (this.sprite.body.blocked.right) {
-						//Idem anterior
-						this.sprite.body.velocity.x = -this.sprite.body.velocity.x - JUMP_BACK_OFF;
-					}
+			
+			this.canJump = false;
+			if (!this.sprite.body.blocked.down) {
+				if (this.sprite.body.blocked.left) {
+					//Al saltar desde una pared sale impulsado con la misma o al menos un poco de velocidad
+					this.sprite.body.velocity.x = -this.sprite.body.velocity.x + JUMP_BACK_OFF;
 				}
-				this.sprite.body.velocity.y = -YSPEED;
+				if (this.sprite.body.blocked.right) {
+					//Idem anterior
+					this.sprite.body.velocity.x = -this.sprite.body.velocity.x - JUMP_BACK_OFF;
+				}
 			}
+			this.sprite.body.velocity.y = -YSPEED;
+			
+				
+					
+			
 		},
 
 		go: function(direction) {
