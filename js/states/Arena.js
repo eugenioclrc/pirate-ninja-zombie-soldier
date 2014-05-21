@@ -313,38 +313,27 @@ map.layers[1].data[6][3].intersects
 				TURBO=TURBO || this.pad1.isDown(Phaser.Gamepad.XBOX360_A);
 			}
 
-
-    //if (pad1.justReleased(Phaser.Gamepad.XBOX360_B))
-
-			
 			if(!RIGHT && LEFT){
 				this.go('left');
 			}else if (!LEFT && RIGHT){
 				this.go('right');
 			}
 
-
 			var isInAir=(!this.sprite.body.blocked.down && !this.sprite.body.blocked.left && !this.sprite.body.blocked.right);
 			
 
-			if (!isInAir){
-				if(UP && this.canJump) {
-					this.jump();
-				}
+			if (!isInAir && UP && this.canJump) {
+				this.jump();
 			}
 
 			if(!UP){
 				this.canJump=true;
-			}
-			
-
-
-			if (isInAir && !UP) {
-				if( this.sprite.body.velocity.y < 0){
+				
+				// stop jumping! 
+				if (isInAir && this.sprite.body.velocity.y < 0){
 					this.sprite.body.velocity.y=0;
-				}						
+				}
 			}
-
 
 			// TURBO!
 			if(TURBO){
