@@ -2,11 +2,11 @@
 /* global GameCtrl */
 /* global Phaser */
 var BULLET_SPEED_TIME = 1; //Should say 1.
-var MAX_SPEED = 300/BULLET_SPEED_TIME; // pixels/second
-var MAX_SPEED_Y = 900/BULLET_SPEED_TIME; // pixels/second
-var YSPEED = 900/BULLET_SPEED_TIME;
+var MAX_SPEED = 400/BULLET_SPEED_TIME; // pixels/second
+var MAX_SPEED_Y = 750/BULLET_SPEED_TIME; // pixels/second
+var YSPEED = 750/BULLET_SPEED_TIME;
 var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
-var GRAVITY = 2000/BULLET_SPEED_TIME; 
+var GRAVITY = 1500/BULLET_SPEED_TIME; 
 var JUMP_BACK_OFF = 3600;
 
 
@@ -100,10 +100,11 @@ var PLAYER;
 			
 			this.game.input.keyboard.addKeyCapture([
 				Phaser.Keyboard.W, Phaser.Keyboard.A,
-				Phaser.Keyboard.S, Phaser.Keyboard.D
+				/*Phaser.Keyboard.S,*/ Phaser.Keyboard.D,
+				Phaser.Keyboard.SPACEBAR // TURBO!
 			]);
 
-
+		    
 			
 			var map = this.add.tilemap('main');
 			map.addTilesetImage('Kenney 32x32', 'kenney32x32');
@@ -249,7 +250,11 @@ map.layers[1].data[6][3].intersects
 	    this.physics = game.physics;
 	    this.add = game.add;
 	    this.sprite = null;
-    	this.keyboard = this.game.input.keyboard; 
+    	this.keyboard = this.game.input.keyboard;
+		
+		this.game.input.gamepad.start();
+		this.pad1 = this.game.input.gamepad.pad1;
+
     	this.canJump = true;
 	}
  
@@ -284,19 +289,9 @@ map.layers[1].data[6][3].intersects
 			this.cursors = {
 				up: this.game.input.keyboard.addKey(Phaser.Keyboard.W),
 				left: this.game.input.keyboard.addKey(Phaser.Keyboard.A),
-				right: this.game.input.keyboard.addKey(Phaser.Keyboard.D)
+				right: this.game.input.keyboard.addKey(Phaser.Keyboard.D),
+				turbo: this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)
 			};
-
-			// TURBO!
-			var k = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-			k.onUp.add(function(){
-				this.sprite.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y);
-			}.bind(this));
-			
-			k.onDown.add(function(){
-				this.sprite.body.maxVelocity.setTo(MAX_SPEED*1.8, MAX_SPEED_Y);
-			}.bind(this));
-			
 
 		},
 		update: function() {
@@ -305,9 +300,26 @@ map.layers[1].data[6][3].intersects
 				this.sprite.body.velocity.x = 0;
 			}
 
-			if(this.cursors.left.isDown){
+
+			var LEFT = false||this.cursors.left.isDown;
+			var RIGHT = false||this.cursors.right.isDown;
+			var UP = false||this.cursors.up.isDown;
+			var TURBO = false || this.cursors.turbo.isDown;// TURBO!
+
+			if(this.game.input.gamepad.supported && this.game.input.gamepad.active && this.pad1.connected) {
+				LEFT=LEFT || this.pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT);
+				RIGHT=RIGHT ||this.pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT);
+				UP=UP || this.pad1.isDown(Phaser.Gamepad.XBOX360_X);
+				TURBO=TURBO || this.pad1.isDown(Phaser.Gamepad.XBOX360_A);
+			}
+
+
+    //if (pad1.justReleased(Phaser.Gamepad.XBOX360_B))
+
+			
+			if(!RIGHT && LEFT){
 				this.go('left');
-			}else if (this.cursors.right.isDown){
+			}else if (!LEFT && RIGHT){
 				this.go('right');
 			}
 
@@ -316,22 +328,30 @@ map.layers[1].data[6][3].intersects
 			
 
 			if (!isInAir){
-				if(this.cursors.up.isDown && this.canJump) {
+				if(UP && this.canJump) {
 					this.jump();
 				}
 			}
-			if(this.cursors.up.isUp){
+
+			if(!UP){
 				this.canJump=true;
 			}
 			
 
 
-			if (isInAir && this.cursors.up.isUp) {
+			if (isInAir && !UP) {
 				if( this.sprite.body.velocity.y < 0){
 					this.sprite.body.velocity.y=0;
 				}						
 			}
 
+
+			// TURBO!
+			if(TURBO){
+				this.sprite.body.maxVelocity.setTo(MAX_SPEED*1.8, MAX_SPEED_Y);
+			}else{
+				this.sprite.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y);
+			}
 		},
 		jump: function() {
 			// Say how high!
