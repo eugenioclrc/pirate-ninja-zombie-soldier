@@ -15,6 +15,8 @@ var SHOT_DELAY = 200; // milliseconds (10 bullets/second)
 var BULLET_SPEED = 400; // pixels/second
 var NUMBER_OF_BULLETS = 200;
 
+var PLAYER;
+
 (function(){
 	GameCtrl.Arena = function () {
 
@@ -55,6 +57,9 @@ var NUMBER_OF_BULLETS = 200;
 		// 150,120
 		initPlayer:function(x,y,color){
 			var player = new Player(this.game);
+
+			PLAYER=player;
+			
 			player.create(x,y,color);
 			return player;
 		},
