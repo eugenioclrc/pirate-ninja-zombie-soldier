@@ -4,16 +4,16 @@
   <image source="images/tiles_spritesheet.png" width="384" height="320"/>
  </tileset>
  <tileset firstgid="121" name="collision" tilewidth="32" tileheight="32">
-  <image source="images/collision.png" width="32" height="32"/>
+  <image source="images/zelda.png" width="256" height="96"/>
  </tileset>
  <layer name="Capa de Patrones 1" width="20" height="20">
   <data encoding="base64" compression="zlib">
    eJxjYBgFIxVEAXE0Go6lsxs8oZha5ohBMaVADA0PVvOsoBgbUAFiVTSsjkOtFRqmFNDaPGUKzFJEMgcWhkpkmgkyS4EBM37FsJipCaW10czQIsIsZDPR4xQXJmQWNTAAP+sPuQ==
   </data>
  </layer>
- <layer name="collision" width="20" height="20" visible="0">
+ <layer name="collision" width="20" height="20">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFIxVU4sAD4QZqmTNqHm41pKilh/sGk3mUmIkrnMkxE59ZgxEDAMoQLlM=
+   eJxjYBgFIxVU4cAD4QZqmTNqHm41pKilh/soMa+DArO6sJhHrpm4zCLHTEJmDUYMAOSgMes=
   </data>
  </layer>
 </map>
