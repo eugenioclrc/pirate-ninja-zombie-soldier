@@ -19,7 +19,7 @@
   <label>var YSPEED = </label> <input  class="JSyspeed" />;<br />
   <label>var MOVE_ACCELERATION = </label> <input disabled="disabled" class="JSmove_acceleration" />; MAX_SPEED*5<br />
   <label>var GRAVITY = </label> <input  class="JSgravity" />; <br />
-  <label>var JUMP_BACK_OFF = </label> <input  class="JSjump_back_off" />;<br />
+  
   
 
   <input type="submit" />
@@ -46,8 +46,7 @@
     $('.JSyspeed').attr('value', YSPEED);
     $('.JSmove_acceleration').attr('value', MOVE_ACCELERATION);
     $('.JSgravity').attr('value', GRAVITY);
-    $('.JSjump_back_off').attr('value', JUMP_BACK_OFF);
-
+    
 
     $('.JSvars').on('submit', function(e){
       e.preventDefault();
@@ -57,8 +56,7 @@
 
       MOVE_ACCELERATION=MAX_SPEED*5;
       GRAVITY=parseInt($('.JSgravity').val(), 10);
-      JUMP_BACK_OFF=parseInt($('.JSjump_back_off').val(), 10);
-
+    
       PLAYER.sprite.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y); // x, y
       PLAYER.sprite.body.gravity.set(0, GRAVITY);
     });
