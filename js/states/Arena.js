@@ -7,7 +7,6 @@ var MAX_SPEED_Y = 750/BULLET_SPEED_TIME; // pixels/second
 var YSPEED = 750/BULLET_SPEED_TIME;
 var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
 var GRAVITY = 1500/BULLET_SPEED_TIME;
-var JUMP_BACK_OFF = 3600;
 
 
 // Define constants
@@ -544,11 +543,11 @@ map.layers[1].data[6][3].intersects
 			if (!this.sprite.body.blocked.down) {
 				if (this.sprite.body.blocked.left) {
 					//Al saltar desde una pared sale impulsado con la misma o al menos un poco de velocidad
-					this.sprite.body.velocity.x = -this.sprite.body.velocity.x + JUMP_BACK_OFF;
+					this.sprite.body.velocity.x = -this.sprite.body.velocity.x + MAX_SPEED;
 				}
 				if (this.sprite.body.blocked.right) {
 					//Idem anterior
-					this.sprite.body.velocity.x = -this.sprite.body.velocity.x - JUMP_BACK_OFF;
+					this.sprite.body.velocity.x = -this.sprite.body.velocity.x - MAX_SPEED;
 				}
 			}
 			this.sprite.body.velocity.y = -YSPEED;
