@@ -242,6 +242,8 @@ var separateTile = function (i, body, tile, slope) {
 		},
 			
 		create: function () {
+			this.game.stage.backgroundColor = '#38384B';
+
 			this.physics.startSystem(Phaser.Physics.ARCADE);
 
 			this.game.time.deltaCap=0.02;
@@ -283,7 +285,7 @@ map.layers[1].data[6][3].intersects
 					
 					// l.name es 'ninjacollision'
 					
-					layer.debug = true;
+					//layer.debug = true;
 				
 					this.tilesCollision=layer;
 					//console.log(layer);
@@ -420,7 +422,7 @@ map.layers[1].data[6][3].intersects
 
 		},
 		render: function(){
-			this.game.debug.bodyInfo(this.player, 0, 100);
+			//this.game.debug.bodyInfo(this.player, 0, 100);
 			//this.game.debug.body(this.player,0,100);
 		}
 	};
