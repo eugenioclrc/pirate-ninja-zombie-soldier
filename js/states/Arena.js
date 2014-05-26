@@ -17,6 +17,157 @@ var NUMBER_OF_BULLETS = 200;
 
 var PLAYER;
 
+
+function halfTriangleBottomLeft(i, body, tile){
+    body.blocked.down = false;
+	if( body.velocity.y >0 && (body.position.y+body.height-tile.bottom)+(body.position.x-tile.right)<=0){
+
+        
+		body.y=(body.position.x-tile.right)-(body.height-tile.bottom);
+		
+    	//body.position.y=(body.position.y+body.height+tile.bottom)-tile.right;
+        body.blocked.down = true;
+    }
+
+    return true;
+}
+
+
+function halfTriangleBottomRight(i, body, tile){
+	if( body.velocity.y > 0 && (body.y+body.height-tile.bottom)-(body.x+body.width-tile.right)>=0){
+        //body.velocity.x += MAX_SPEED;
+
+        
+		//body.position.y=-(body.position.x+body.width-tile.right)-(body.height-tile.bottom);
+		body.y=(body.position.x+body.width-tile.right)+tile.bottom;
+		body.y=(body.position.x-tile.right)-(body.height-tile.bottom)-body.height;
+		
+    	//body.position.y=(body.position.y+body.height+tile.bottom)-tile.right;
+        body.blocked.down = true;
+    }
+
+    return true;
+}
+
+
+var separateTile = function (i, body, tile, slope) {
+ 	if (!slope || !slope.hasOwnProperty(tile.index)) {
+ 		return false;
+ 	}
+
+ 	var type=slope[tile.index];
+
+ 	if(type===1){
+ 		return this.separateTile(i, body, tile);
+ 	}
+
+ 	if (!tile.intersects(body.position.x, body.position.y, body.right, body.bottom)){
+		//  no collision so bail out (separted in a previous step)
+		return false;
+	}
+
+
+
+        //  We don't need to go any further if this tile doesn't actually separate
+        if (!tile.faceLeft && !tile.faceRight && !tile.faceTop && !tile.faceBottom)
+        {
+            //   This could happen if the tile was meant to be collided with re: a callback, but otherwise isn't needed for separation
+            return false;
+        }
+
+
+ 	if(type===15){
+ 		return halfTriangleBottomLeft.call(this, i, body, tile);
+ 	}else if(type===17){
+ 		return halfTriangleBottomRight.call(this, i, body, tile);
+ 	}
+
+
+/*
+	if(separateTile = function 
+
+        //  We re-check for collision in case body was separated in a previous step
+        if (!tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
+        {
+            //  no collision so bail out (separted in a previous step)
+            return false;
+        }
+
+        debugger;
+
+        //  We don't need to go any further if this tile doesn't actually separate
+        if (!tile.faceLeft && !tile.faceRight && !tile.faceTop && !tile.faceBottom)
+        {
+            //   This could happen if the tile was meant to be collided with re: a callback, but otherwise isn't needed for separation
+            return false;
+        }
+
+        var ox = 0;
+        var oy = 0;
+        var minX = 0;
+        var minY = 1;
+
+        if (body.deltaAbsX() > body.deltaAbsY())
+        {
+            //  Moving faster horizontally, check X axis first
+            minX = -1;
+        }
+        else if (body.deltaAbsX() < body.deltaAbsY())
+        {
+            //  Moving faster vertically, check Y axis first
+            minY = -1;
+        }
+
+        if (body.deltaX() !== 0 && body.deltaY() !== 0 && (tile.faceLeft || tile.faceRight) && (tile.faceTop || tile.faceBottom))
+        {
+            //  We only need do this if both axis have checking faces AND we're moving in both directions
+            minX = Math.min(Math.abs(body.position.x - tile.right), Math.abs(body.right - tile.left));
+            minY = Math.min(Math.abs(body.position.y - tile.bottom), Math.abs(body.bottom - tile.top));
+
+            // console.log('checking faces', minX, minY);
+        }
+
+        if (minX < minY)
+        {
+            if (tile.faceLeft || tile.faceRight)
+            {
+                ox = this.tileCheckX(body, tile);
+
+                //  That's horizontal done, check if we still intersects? If not then we can return now
+                if (ox !== 0 && !tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
+                {
+                    return true;
+                }
+            }
+
+            if (tile.faceTop || tile.faceBottom)
+            {
+                oy = this.tileCheckY(body, tile);
+            }
+        }
+        else
+        {
+            if (tile.faceTop || tile.faceBottom)
+            {
+                oy = this.tileCheckY(body, tile);
+
+                //  That's vertical done, check if we still intersects? If not then we can return now
+                if (oy !== 0 && !tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
+                {
+                    return true;
+                }
+            }
+
+            if (tile.faceLeft || tile.faceRight)
+            {
+                ox = this.tileCheckX(body, tile);
+            }
+        }
+
+        return (ox !== 0 || oy !== 0);
+*/
+    };
+
 (function(){
 	GameCtrl.Arena = function () {
 
@@ -47,7 +198,7 @@ var PLAYER;
 	function getRndColor(){
 		var letters = '0123456789ABCDEF'.split('');
 		var color = '';
-		for (var i = 0; i < 6; i++ ) {
+		for (var i = 0; i < 6; i += 1 ) {
 		    color += letters[Math.floor(Math.random() * 16)];
 		}
 		return color;
@@ -73,7 +224,7 @@ var PLAYER;
 		    bitBullet.ctx.fillStyle = '#ffffff';	
 		    bitBullet.ctx.fill();
 
-		    for(var i = 0; i < NUMBER_OF_BULLETS; i++) {
+		    for(var i = 0; i < NUMBER_OF_BULLETS; i += 1) {
 		        // Create each bullet and add it to the group.
 
 		        var bullet = this.game.add.sprite(0, 0, bitBullet);
@@ -98,38 +249,41 @@ var PLAYER;
 
 			this.game.stage.disableVisibilityChange = true;
 			
-			this.game.input.keyboard.addKeyCapture([
-				Phaser.Keyboard.W, Phaser.Keyboard.A,
-				/*Phaser.Keyboard.S,*/ Phaser.Keyboard.D,
-				Phaser.Keyboard.SPACEBAR // TURBO!
-			]);
-
-		    
 			
 			var map = this.add.tilemap('main');
 			map.addTilesetImage('Kenney 32x32', 'kenney32x32');
 
+			
 			map.layers.forEach(function(l){
 				var layer=map.createLayer(l.name);
-				if(l.name=='collision'){
+			
+				if(l.name==='collision'){
 
-				/*	var firstgid=map.tilesets[map.getTilesetIndex('zelda14')].firstgid;
-					var slope={};
-					for(var i=firstgid;i<firstgid+14;i++){
+					var firstgid=map.tilesets[map.getTilesetIndex('collision')].firstgid;
+					var slope={}, collisionTiles=[];
+					for(var i=firstgid;i<firstgid+18; i += 1){
 						slope[i.toString()]=i-firstgid;
+						collisionTiles.push(i);
 						console.log(i+' '+(i-firstgid));
 
-					}*/
+					}
+					console.log(collisionTiles);
+					map.setCollision(collisionTiles,true, layer);
+
+					layer._slope=slope;
 /*
 CUSTOM TILES
 map.layers[1].data[6][3].intersects
 !tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
 */	
 					//console.log(l.name);
-					map.setCollisionByExclusion([],true,layer);
+			
+
+					//map.setCollisionByExclusion([],true,layer);
+					
 					// l.name es 'ninjacollision'
 					
-					//layer.debug = true;
+					layer.debug = true;
 				
 					this.tilesCollision=layer;
 					//console.log(layer);
@@ -137,7 +291,9 @@ map.layers[1].data[6][3].intersects
 				
 				layer.resizeWorld();
 			}, this);
+
 			
+
 		    this.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
 			
@@ -159,8 +315,12 @@ map.layers[1].data[6][3].intersects
 						return ;
 					}
 					
-					if (this.lastBulletShotAt === undefined) this.lastBulletShotAt = 0;
-					if (this.game.time.now - this.lastBulletShotAt < SHOT_DELAY) return;
+					if (this.lastBulletShotAt === undefined) {
+						this.lastBulletShotAt = 0;
+					}
+					if (this.game.time.now - this.lastBulletShotAt < SHOT_DELAY) {
+						return;
+					}
 
 					this.lastBulletShotAt = this.game.time.now;
 
@@ -193,7 +353,9 @@ map.layers[1].data[6][3].intersects
 			var bullet = this.bulletPool.getFirstDead();
 
 		    // If there aren't any bullets available then don't shoot
-		    if (bullet === null || bullet === undefined) return;
+		    if (bullet === null || bullet === undefined) {
+		    	return;
+		    }
 			
 
 		    // Revive the bullet
@@ -223,7 +385,26 @@ map.layers[1].data[6][3].intersects
 		        this.fpsText.setText(this.game.time.fps + ' FPS');
     		}
 
-			this.physics.arcade.collide(this.player, this.tilesCollision /*, this.realPlayer.collideWall, null, this.realPlayer*/);
+ 			//this.collideSpriteVsTilemapLayer(object1, object2, collideCallback, processCallback, callbackContext);
+ 			//this.physics.arcade.collideSpriteVsTilemapLayer(this.player, this.tilesCollision);
+
+ 			var testCollide=function (sprite,tilemapLayer){
+	 			var _mapData = tilemapLayer.getTiles(
+	            sprite.body.position.x - sprite.body.tilePadding.x,
+	            sprite.body.position.y - sprite.body.tilePadding.y,
+	            sprite.body.width + sprite.body.tilePadding.x,
+	            sprite.body.height + sprite.body.tilePadding.y,
+	            false, false);
+
+				for (var i = 0; i < _mapData.length; i += 1) {
+					separateTile.call(this.physics.arcade, i, sprite.body, _mapData[i], tilemapLayer._slope);
+				}
+            };
+
+
+			testCollide.call(this, this.player, this.tilesCollision);
+
+ 			//this.physics.arcade.collide(this.player, this.tilesCollision /*, this.realPlayer.collideWall, null, this.realPlayer*/);
 
 			this.realPlayer.update();
 
@@ -239,7 +420,7 @@ map.layers[1].data[6][3].intersects
 
 		},
 		render: function(){
-			//this.game.debug.bodyInfo(this.player, 0, 100);
+			this.game.debug.bodyInfo(this.player, 0, 100);
 			//this.game.debug.body(this.player,0,100);
 		}
 	};
@@ -252,6 +433,13 @@ map.layers[1].data[6][3].intersects
 	    this.sprite = null;
     	this.keyboard = this.game.input.keyboard;
 		
+
+		this.game.input.keyboard.addKeyCapture([
+			Phaser.Keyboard.W, Phaser.Keyboard.A,
+			/*Phaser.Keyboard.S,*/ Phaser.Keyboard.D,
+			Phaser.Keyboard.SPACEBAR // TURBO!
+		]);
+
 		this.game.input.gamepad.start();
 		this.pad1 = this.game.input.gamepad.pad1;
 
@@ -263,7 +451,9 @@ map.layers[1].data[6][3].intersects
 			// create a new bitmap data object
 			var bmd = this.add.bitmapData(32,32);
 
-			if(!color) color=getRndColor();
+			if(!color) {
+				color=getRndColor();
+			}
 
 			// draw to the canvas context like normal
 			bmd.ctx.beginPath();
@@ -307,44 +497,34 @@ map.layers[1].data[6][3].intersects
 			var TURBO = false || this.cursors.turbo.isDown;// TURBO!
 
 			if(this.game.input.gamepad.supported && this.game.input.gamepad.active && this.pad1.connected) {
-				LEFT=LEFT || this.pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT);
-				RIGHT=RIGHT ||this.pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT);
+				var axis=this.pad1._rawPad.axes;
+				LEFT=LEFT || axis[0]<0;
+				RIGHT=RIGHT ||axis[0]>0;
 				UP=UP || this.pad1.isDown(Phaser.Gamepad.XBOX360_X);
 				TURBO=TURBO || this.pad1.isDown(Phaser.Gamepad.XBOX360_A);
 			}
 
-
-    //if (pad1.justReleased(Phaser.Gamepad.XBOX360_B))
-
-			
 			if(!RIGHT && LEFT){
 				this.go('left');
 			}else if (!LEFT && RIGHT){
 				this.go('right');
 			}
 
-
 			var isInAir=(!this.sprite.body.blocked.down && !this.sprite.body.blocked.left && !this.sprite.body.blocked.right);
 			
 
-			if (!isInAir){
-				if(UP && this.canJump) {
-					this.jump();
-				}
+			if (!isInAir && UP && this.canJump) {
+				this.jump();
 			}
 
 			if(!UP){
 				this.canJump=true;
-			}
-			
-
-
-			if (isInAir && !UP) {
-				if( this.sprite.body.velocity.y < 0){
+				
+				// stop jumping! 
+				if (isInAir && this.sprite.body.velocity.y < 0){
 					this.sprite.body.velocity.y=0;
-				}						
+				}
 			}
-
 
 			// TURBO!
 			if(TURBO){
@@ -377,7 +557,7 @@ map.layers[1].data[6][3].intersects
 		},
 
 		go: function(direction) {
-			var sign = (direction==='left') ? -2 : 2;
+			var sign = (direction==='left') ? -1 : 1;
 			
 			//this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
 			if(this.sprite.body.blocked.down){
@@ -385,7 +565,10 @@ map.layers[1].data[6][3].intersects
 				this.sprite.body.velocity.x=sign*MAX_SPEED;
 			} else {
 				this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
+
+				// hung!
 				if ((this.sprite.body.blocked.left || this.sprite.body.blocked.right) && this.sprite.body.velocity.y > -MAX_SPEED_Y *0.8 ){
+
 					this.sprite.body.velocity.y=0;
 				}
 			}
