@@ -19,137 +19,138 @@ var PLAYER;
 
 
 function halfTriangleBottomLeft(i, body, tile){
-    body.blocked.down = false;
+	body.blocked.down = false;
 	if( body.velocity.y >0 && (body.position.y+body.height-tile.bottom)+(body.position.x-tile.right)<=0){
-
-        
 		body.y=(body.position.x-tile.right)-(body.height-tile.bottom);
+		body.blocked.down = true;
+		body.speedxPunish=MAX_SPEED*Math.cos(45);
+		if(body.velocity.x>0){
+			body.speedxPunish = body.speedxPunish / 10;
+		}
 		
-    	//body.position.y=(body.position.y+body.height+tile.bottom)-tile.right;
-        body.blocked.down = true;
-    }
+	}
 
-    return true;
+	return true;
 }
 
 
 function halfTriangleBottomRight(i, body, tile){
-	if( body.velocity.y > 0 && (body.y+body.height-tile.bottom)-(body.x+body.width-tile.right)>=0){
-        //body.velocity.x += MAX_SPEED;
+	body.blocked.down = false;
+	if( body.velocity.y > 0 && (body.position.y+body.height-tile.top)-(body.position.x+body.width-tile.right)>=0){
+		body.y=tile.bottom+tile.left-(body.position.x+body.width)-body.height;
+		body.blocked.down = true;
+		body.speedxPunish=-MAX_SPEED*Math.cos(45);
+		if(body.velocity.x<0){
+			body.speedxPunish = body.speedxPunish / 10;
+		}
+	}
 
-        
-		//body.position.y=-(body.position.x+body.width-tile.right)-(body.height-tile.bottom);
-		body.y=(body.position.x+body.width-tile.right)+tile.bottom;
-		body.y=(body.position.x-tile.right)-(body.height-tile.bottom)-body.height;
-		
-    	//body.position.y=(body.position.y+body.height+tile.bottom)-tile.right;
-        body.blocked.down = true;
-    }
-
-    return true;
+	return true;
 }
 
 
 var separateTile = function (i, body, tile, slope) {
- 	if (!slope || !slope.hasOwnProperty(tile.index)) {
- 		return false;
- 	}
+	if (!slope || !slope.hasOwnProperty(tile.index)) {
+		return false;
+	}
 
- 	var type=slope[tile.index];
+	var type=slope[tile.index];
 
- 	if(type===1){
- 		return this.separateTile(i, body, tile);
- 	}
+	if(type===1){
+		if(this.separateTile(i, body, tile)){
+			body.speedxPunish = 0;
+		}
+	}
 
- 	if (!tile.intersects(body.position.x, body.position.y, body.right, body.bottom)){
+	if (!tile.intersects(body.position.x, body.position.y, body.right, body.bottom)){
 		//  no collision so bail out (separted in a previous step)
 		return false;
 	}
 
 
 
-        //  We don't need to go any further if this tile doesn't actually separate
-        if (!tile.faceLeft && !tile.faceRight && !tile.faceTop && !tile.faceBottom)
-        {
-            //   This could happen if the tile was meant to be collided with re: a callback, but otherwise isn't needed for separation
-            return false;
-        }
+		//  We don't need to go any further if this tile doesn't actually separate
+		if (!tile.faceLeft && !tile.faceRight && !tile.faceTop && !tile.faceBottom)
+		{
+			//   This could happen if the tile was meant to be collided with re: a callback, but otherwise isn't needed for separation
+			return false;
+		}
 
 
- 	if(type===15){
- 		return halfTriangleBottomLeft.call(this, i, body, tile);
- 	}else if(type===17){
- 		return halfTriangleBottomRight.call(this, i, body, tile);
- 	}
+	if(type===15){
+		return halfTriangleBottomLeft.call(this, i, body, tile);
+	}else if(type===17){
+		return halfTriangleBottomRight.call(this, i, body, tile);
+	}
 
 
 /*
 	if(separateTile = function 
 
-        //  We re-check for collision in case body was separated in a previous step
-        if (!tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
-        {
-            //  no collision so bail out (separted in a previous step)
-            return false;
-        }
+		//  We re-check for collision in case body was separated in a previous step
+		if (!tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
+		{
+			//  no collision so bail out (separted in a previous step)
+			return false;
+		}
 
         debugger;
 
-        //  We don't need to go any further if this tile doesn't actually separate
-        if (!tile.faceLeft && !tile.faceRight && !tile.faceTop && !tile.faceBottom)
-        {
-            //   This could happen if the tile was meant to be collided with re: a callback, but otherwise isn't needed for separation
-            return false;
-        }
+		//  We don't need to go any further if this tile doesn't actually separate
+		if (!tile.faceLeft && !tile.faceRight && !tile.faceTop && !tile.faceBottom)
+		{
+			//   This could happen if the tile was meant to be collided with re: a callback, but otherwise isn't needed for separation
+			return false;
+		}
 
-        var ox = 0;
-        var oy = 0;
-        var minX = 0;
-        var minY = 1;
+		var ox = 0;
+		var oy = 0;
+		var minX = 0;
+		var minY = 1;
 
-        if (body.deltaAbsX() > body.deltaAbsY())
-        {
-            //  Moving faster horizontally, check X axis first
-            minX = -1;
-        }
-        else if (body.deltaAbsX() < body.deltaAbsY())
-        {
-            //  Moving faster vertically, check Y axis first
-            minY = -1;
-        }
+		if (body.deltaAbsX() > body.deltaAbsY())
+		{
+			//  Moving faster horizontally, check X axis first
+			minX = -1;
+		}
+		else if (body.deltaAbsX() < body.deltaAbsY())
+		{
+			//  Moving faster vertically, check Y axis first
+			minY = -1;
+		}
 
-        if (body.deltaX() !== 0 && body.deltaY() !== 0 && (tile.faceLeft || tile.faceRight) && (tile.faceTop || tile.faceBottom))
-        {
-            //  We only need do this if both axis have checking faces AND we're moving in both directions
-            minX = Math.min(Math.abs(body.position.x - tile.right), Math.abs(body.right - tile.left));
-            minY = Math.min(Math.abs(body.position.y - tile.bottom), Math.abs(body.bottom - tile.top));
+		if (body.deltaX() !== 0 && body.deltaY() !== 0 && (tile.faceLeft || tile.faceRight) && (tile.faceTop || tile.faceBottom))
+		{
+			//  We only need do this if both axis have checking faces AND we're moving in both directions
+			minX = Math.min(Math.abs(body.position.x - tile.right), Math.abs(body.right - tile.left));
+			minY = Math.min(Math.abs(body.position.y - tile.bottom), Math.abs(body.bottom - tile.top));
 
-            // console.log('checking faces', minX, minY);
-        }
+			// console.log('checking faces', minX, minY);
+		}
 
-        if (minX < minY)
-        {
-            if (tile.faceLeft || tile.faceRight)
-            {
-                ox = this.tileCheckX(body, tile);
+		if (minX < minY)
+		{
+			if (tile.faceLeft || tile.faceRight)
+			{
+				ox = this.tileCheckX(body, tile);
 
-                //  That's horizontal done, check if we still intersects? If not then we can return now
-                if (ox !== 0 && !tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
-                {
-                    return true;
-                }
-            }
+				//  That's horizontal done, check if we still intersects? If not then we can return now
+				if (ox !== 0 && !tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
+				{
+					return true;
+				}
+			}
 
-            if (tile.faceTop || tile.faceBottom)
-            {
-                oy = this.tileCheckY(body, tile);
-            }
-        }
-        else
-        {
-            if (tile.faceTop || tile.faceBottom)
-            {
-                oy = this.tileCheckY(body, tile);
+			if (tile.faceTop || tile.faceBottom)
+			{
+				oy = this.tileCheckY(body, tile);
+			}
+		}
+		else
+		{
+			if (tile.faceTop || tile.faceBottom)
+			{
+				oy = this.tileCheckY(body, tile);
 
                 //  That's vertical done, check if we still intersects? If not then we can return now
                 if (oy !== 0 && !tile.intersects(body.position.x, body.position.y, body.right, body.bottom))
@@ -242,6 +243,8 @@ var separateTile = function (i, body, tile, slope) {
 		},
 			
 		create: function () {
+			this.game.stage.backgroundColor = '#38384B';
+
 			this.physics.startSystem(Phaser.Physics.ARCADE);
 
 			this.game.time.deltaCap=0.02;
@@ -283,7 +286,7 @@ map.layers[1].data[6][3].intersects
 					
 					// l.name es 'ninjacollision'
 					
-					layer.debug = true;
+					//layer.debug = true;
 				
 					this.tilesCollision=layer;
 					//console.log(layer);
@@ -473,6 +476,7 @@ map.layers[1].data[6][3].intersects
 			s.body.collideWorldBounds = true;
 			s.body.gravity.set(0, GRAVITY);
 			s.body.allowGravity = true;
+			s.body.speedxPunish=0;
 
 			this.game.camera.follow(s, Phaser.Camera.FOLLOW_PLATFORMER);
 
@@ -487,7 +491,7 @@ map.layers[1].data[6][3].intersects
 		update: function() {
 			this.sprite.body.acceleration.x=0;
 			if(this.sprite.body.blocked.down){
-				this.sprite.body.velocity.x = 0;
+				this.sprite.body.velocity.x = 0+this.sprite.body.speedxPunish;
 			}
 
 
@@ -564,7 +568,7 @@ map.layers[1].data[6][3].intersects
 			//this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
 			if(this.sprite.body.blocked.down){
 				//Si esta en el piso no paga penalidad para empezar a moverse.
-				this.sprite.body.velocity.x = sign * MAX_SPEED * _bonus;
+				this.sprite.body.velocity.x = sign * MAX_SPEED * _bonus +this.sprite.body.speedxPunish;
 			} else {
 				this.sprite.body.acceleration.x = sign * MOVE_ACCELERATION * _bonus;
 
@@ -580,24 +584,11 @@ map.layers[1].data[6][3].intersects
 
 		stop: function() {
 			this.sprite.body.acceleration.x=0;
-			if(this.sprite.body.blocked.down){
+			/*if(this.sprite.body.blocked.down){
 				//Si esta en el piso no paga penalidad para detenerse.
-				this.sprite.body.velocity.x=0;
-			}
-		},
-
-/*
-		collideWall: function(/*wall* /) {
-			if(this.sprite.body.blocked.down && this.stoped) {
-				//Si dejó de apretar dirección y toca el piso, se detiene del todo.
-				this.sprite.body.acceleration.x=0;
-				this.sprite.body.velocity.x=0;
-			}
-			if(this.sprite.body.blocked.down) {
-				//Si dejó de saltar y toca el piso, pierde el DRAG
-				
-			}
-		}*/
+				//this.sprite.body.velocity.x=0;
+			}*/
+		}
 	};
 
 

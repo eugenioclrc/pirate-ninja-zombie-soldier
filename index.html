@@ -10,23 +10,23 @@
   <!-- /build -->
 </head>
 <body oncontextmenu="return false">
-  <div id="game" style="width: 800px;margin:40px auto; border:2px solid #333w"></div>
+  <div id="game" style="width: 800px;margin:40px auto; border:2px solid #333"></div>
   <div>
-    <form class="JSvars" style="margin: auto;width: 500px;color: #fff;">
+    <form class="JSvars" style="margin: auto;width: 500px;">
     <b>all in pixels/second </b><br />
     <label>var MAX_SPEED = </label> <input class="JSmax_speed" />; <br />
     <label>var MAX_SPEED_Y = </label> <input  class="JSmax_speed_y" />;<br />
   <label>var YSPEED = </label> <input  class="JSyspeed" />;<br />
   <label>var MOVE_ACCELERATION = </label> <input disabled="disabled" class="JSmove_acceleration" />; MAX_SPEED*5<br />
   <label>var GRAVITY = </label> <input  class="JSgravity" />; <br />
-  <label>var JUMP_BACK_OFF = </label> <input  class="JSjump_back_off" />;<br />
+  
   
 
   <input type="submit" />
     </form>
   </div>
-  <p style="color: white;">Use W A S D to move. Use your mouse to aim and shoot</p>
-  <p style="color: white; font-size:2em">Developed by <a href="http://twitter.com/eugenioclrc">@eugenioclrc</a> and <a href="http://twitter.com/msemelman">@msemelman</a><p>
+  <p>Use W A S D to move. Use your mouse to aim and shoot</p>
+  <p>Developed by <a href="http://twitter.com/eugenioclrc">@eugenioclrc</a><p>
 
   
   <!-- <script src="http://192.168.0.201:8000/socket.io/socket.io.js"></script> -->
@@ -46,8 +46,7 @@
     $('.JSyspeed').attr('value', YSPEED);
     $('.JSmove_acceleration').attr('value', MOVE_ACCELERATION);
     $('.JSgravity').attr('value', GRAVITY);
-    $('.JSjump_back_off').attr('value', JUMP_BACK_OFF);
-
+    
 
     $('.JSvars').on('submit', function(e){
       e.preventDefault();
@@ -57,8 +56,7 @@
 
       MOVE_ACCELERATION=MAX_SPEED*5;
       GRAVITY=parseInt($('.JSgravity').val(), 10);
-      JUMP_BACK_OFF=parseInt($('.JSjump_back_off').val(), 10);
-
+    
       PLAYER.sprite.body.maxVelocity.setTo(MAX_SPEED, MAX_SPEED_Y); // x, y
       PLAYER.sprite.body.gravity.set(0, GRAVITY);
     });
