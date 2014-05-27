@@ -2,12 +2,12 @@
 /* global GameCtrl */
 /* global Phaser */
 var BULLET_SPEED_TIME = 1; //Should say 1.
-var MAX_SPEED = 300/BULLET_SPEED_TIME; // pixels/second
+var MAX_SPEED = 400/BULLET_SPEED_TIME; // pixels/second
 var MAX_SPEED_Y = 750/BULLET_SPEED_TIME; // pixels/second
 var YSPEED = 750/BULLET_SPEED_TIME;
 var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
 var GRAVITY = 1500/BULLET_SPEED_TIME; 
-var JUMP_BACK_OFF = 300;
+var JUMP_BACK_OFF = 400;
 
 
 // Define constants
@@ -18,13 +18,74 @@ var NUMBER_OF_BULLETS = 200;
 var PLAYER;
 
 
+function halfRectangleTop(i, body, tile){
+    // check intersection
+    /*var intersects = (body.bottom.right <= tile.worldX);
+    intersects = intersects || (body.bottom <= tile.worldY + (tile.height / 2));
+    intersects = intersects || (body.position.x >= tile.worldX + tile.width);
+    intersects = intersects || (body.position.y >= tile.worldY + (tile.height / 2)); */
+    var intersects = (body.bottom.right <= tile.worldX);
+    intersects = intersects || (body.bottom <= tile.worldY + (tile.height / 2));
+    intersects = intersects || (body.position.x >= tile.worldX + tile.width);
+    intersects = intersects || (body.position.y >= tile.worldY);
+    console.log(intersects);
+    if (!intersects) {
+    	return intersects;
+    }
+
+
+    this.tileCheckX(body, tile);
+    /*
+    var ox=0;
+    if (!body.blocked.right && body.deltaAbsX() > 0) {
+		ox = body.right - tile.left;
+    } else if (!body.blocked.left && body.deltaAbsX() < 0) {
+		ox = body.x - tile.right;
+    }
+
+    if (this.TILE_BIAS < Math.abs(ox)) {
+    	ox=0;
+    }
+	
+	if(ox !== 0){
+		this.processTileSeparationX(body, ox);
+	}
+*/
+	var oy = 0;
+	
+	if (body.deltaY() < 0 && !body.blocked.up) {
+		//  Body is moving UP
+        if (tile.faceBottom && body.y < tile.bottom) {
+			oy = body.y - tile.bottom + (tile.height / 2);
+
+            if (oy < -this.TILE_BIAS) {
+            	oy = 0;
+			}
+		}
+	} else if (body.deltaY() > 0 && !body.blocked.down && tile.collideUp && body.checkCollision.down) {
+		//  Body is moving DOWN
+
+		if (tile.faceTop && body.bottom > tile.top) {
+			oy = body.bottom - tile.top;
+
+            if (oy > this.TILE_BIAS) {
+            	oy = 0;
+			}
+        }
+    }
+
+    if (oy !== 0) {
+		this.processTileSeparationY(body, oy);
+	}
+
+}
+
 function halfTriangleBottomLeft(i, body, tile){
-	body.blocked.down = false;
-	if( body.velocity.y >0 && (body.position.y+body.height-tile.bottom)+(body.position.x-tile.right)<=0){
+	if (body.velocity.y >0 && (body.position.y + body.height - tile.bottom) + (body.position.x - tile.right) <= 0){
 		body.y=(body.position.x-tile.right)-(body.height-tile.bottom);
 		body.blocked.down = true;
 		body.speedxPunish=MAX_SPEED*Math.cos(45);
-		if(body.velocity.x>0){
+		if (body.velocity.x > 0) {
 			body.speedxPunish = body.speedxPunish / 10;
 		}
 		
@@ -35,7 +96,6 @@ function halfTriangleBottomLeft(i, body, tile){
 
 
 function halfTriangleBottomRight(i, body, tile){
-	body.blocked.down = false;
 	if( body.velocity.y > 0 && (body.position.y+body.height-tile.top)-(body.position.x+body.width-tile.right)>=0){
 		body.y=tile.bottom+tile.left-(body.position.x+body.width)-body.height;
 		body.blocked.down = true;
@@ -81,6 +141,8 @@ var separateTile = function (i, body, tile, slope) {
 		return halfTriangleBottomLeft.call(this, i, body, tile);
 	}else if(type===17){
 		return halfTriangleBottomRight.call(this, i, body, tile);
+	}else if(type===6){
+		return halfRectangleTop.call(this, i, body, tile);
 	}
 
 
