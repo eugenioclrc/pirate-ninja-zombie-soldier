@@ -2,12 +2,12 @@
 /* global GameCtrl */
 /* global Phaser */
 var BULLET_SPEED_TIME = 1; //Should say 1.
-var MAX_SPEED = 400/BULLET_SPEED_TIME; // pixels/second
+var MAX_SPEED = 300/BULLET_SPEED_TIME; // pixels/second
 var MAX_SPEED_Y = 750/BULLET_SPEED_TIME; // pixels/second
 var YSPEED = 750/BULLET_SPEED_TIME;
 var MOVE_ACCELERATION = MAX_SPEED*5/BULLET_SPEED_TIME; // pixels/second/second
 var GRAVITY = 1500/BULLET_SPEED_TIME; 
-var JUMP_BACK_OFF = 3600;
+var JUMP_BACK_OFF = 300;
 
 
 // Define constants
@@ -505,9 +505,9 @@ map.layers[1].data[6][3].intersects
 			}
 
 			if(!RIGHT && LEFT){
-				this.go('left');
+				this.go('left', TURBO);
 			}else if (!LEFT && RIGHT){
-				this.go('right');
+				this.go('right', TURBO);
 			}
 
 			var isInAir=(!this.sprite.body.blocked.down && !this.sprite.body.blocked.left && !this.sprite.body.blocked.right);
@@ -556,15 +556,17 @@ map.layers[1].data[6][3].intersects
 			
 		},
 
-		go: function(direction) {
+		go: function(direction, TURBO) {
 			var sign = (direction==='left') ? -1 : 1;
 			
+			var _bonus = (TURBO) ? 1.8 : 1;
+
 			//this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
 			if(this.sprite.body.blocked.down){
 				//Si esta en el piso no paga penalidad para empezar a moverse.
-				this.sprite.body.velocity.x=sign*MAX_SPEED;
+				this.sprite.body.velocity.x = sign * MAX_SPEED * _bonus;
 			} else {
-				this.sprite.body.acceleration.x=sign*MOVE_ACCELERATION;
+				this.sprite.body.acceleration.x = sign * MOVE_ACCELERATION * _bonus;
 
 				// hung!
 				if ((this.sprite.body.blocked.left || this.sprite.body.blocked.right) && this.sprite.body.velocity.y > -MAX_SPEED_Y *0.8 ){
